@@ -6,7 +6,6 @@ import "./interfaces/ITopic.sol";
 
 struct CycleMetadata {
     uint256 cycle; // cycle number
-    uint256 tokens;
     uint256 shares;
     uint256 fees;
     bool hasVotes;
@@ -17,6 +16,8 @@ struct VoteMetadata {
     uint256 tokens;
     bool withdrawn; // no partial withdrawal yet
 }
+
+uint tokens;
 
 contract Choice {
     address public immutable topicAddress;
@@ -103,12 +104,13 @@ contract Choice {
             cycles.push(
                 CycleMetadata({
                     cycle: currentCycle,
-                    tokens: amount,
                     shares: 0,
                     fees: 0,
                     hasVotes: amount > 0
                 })
             );
+
+            tokens = amount;
 
             return (0, amount);
         }
@@ -119,7 +121,7 @@ contract Choice {
         CycleMetadata memory lastCycle = cycles[length - 1];
 
         if (lastCycle.cycle == currentCycle) {
-            cycles[length - 1].tokens += voteAmount;
+            tokens += voteAmount;
             cycles[length - 1].fees += fee;
             return (length - 1, voteAmount);
         }
@@ -127,11 +129,10 @@ contract Choice {
         // carry
         CycleMetadata memory newCycle = CycleMetadata({
             cycle: currentCycle,
-            tokens: lastCycle.tokens + voteAmount,
             shares: lastCycle.shares +
                 (accrualRate *
                     (currentCycle - lastCycle.cycle) *
-                    lastCycle.tokens) /
+                    tokens) /
                 10000,
             fees: fee,
             hasVotes: voteAmount > 0
