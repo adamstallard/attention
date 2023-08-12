@@ -116,12 +116,12 @@ contract Choice {
         }
 
         uint256 fee = (amount * feeRate) / 10000;
-        voteAmount = amount - fee;
+        voteAmount = amount - fee; // the position subtracts the fee
 
         CycleMetadata memory lastCycle = cycles[length - 1];
 
         if (lastCycle.cycle == currentCycle) {
-            tokens += voteAmount;
+            tokens += amount; // the cycle doesn't subtract the fee
             cycles[length - 1].fees += fee;
             return (length - 1, voteAmount);
         }
@@ -137,6 +137,8 @@ contract Choice {
             fees: fee,
             hasVotes: voteAmount > 0
         });
+
+        tokens += amount; // the cycle doesn't subtract the fee
 
         if (!lastCycle.hasVotes) {
             cycles[length - 1] = newCycle;
